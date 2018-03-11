@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane cache="false" mouseTransparent="false" pickOnBounds="false" prefHeight="555.0" prefWidth="719.0" snapToPixel="true" visible="true" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="wrap.view.LoginController">
+  <children>
+      <Pane fx:id="pane" layoutX="255.0" layoutY="298.0">
+         <children>
+          <TextField fx:id="login" layoutY="35.0" prefHeight="28.0" prefWidth="203.0" />
+          <Label alignment="CENTER" contentDisplay="CENTER" layoutX="35.0" prefHeight="28.0" prefWidth="133.0" text="Login:" textAlignment="CENTER" textOverrun="CENTER_ELLIPSIS" wrapText="true">
+            <font>
+              <Font name="Calibri" size="20.0" fx:id="x1" />
+            </font>
+            <textFill>
+              <Color blue="0.500" green="0.500" red="0.500" fx:id="x2" />
+            </textFill>
+          </Label>
+          <TextField fx:id="password" layoutY="105.0" prefHeight="28.0" prefWidth="203.0" />
+          <Label alignment="CENTER" contentDisplay="CENTER" font="$x1" layoutX="25.0" layoutY="73.0" minHeight="20.0" prefHeight="28.0" prefWidth="153.0" text="Password:" textAlignment="CENTER" textFill="$x2" wrapText="true" />
+            <Label alignment="CENTER" contentDisplay="CENTER" layoutX="21.0" layoutY="144.0" prefHeight="23.0" prefWidth="161.0" text="DataBase URL:" textAlignment="CENTER" textFill="#8c8c8c">
+               <font>
+                  <Font name="Calibri" size="20.0" />
+               </font>
+            </Label>
+            <ComboBox fx:id="dbUrl" editable="true" layoutY="169.0" prefHeight="28.0" prefWidth="203.0" />
+         </children>
+      </Pane>
+    <Label layoutX="14.0" layoutY="11.0" prefHeight="28.0" prefWidth="70.0" text="Odmen" textFill="$x2">
+      <font>
+        <Font name="Calibri" size="21.0" />
+      </font>
+    </Label>
+    <Slider layoutX="60.0" layoutY="525.0" minWidth="36.0" prefWidth="36.0" />
+    <Label layoutX="15.0" layoutY="524.0" text="theme" textFill="#606060" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="15.0" AnchorPane.topAnchor="524.0">
+      <font>
+        <Font name="Calibri" size="14.0" />
+      </font>
+    </Label>
+      <Label fx:id="connect" alignment="CENTER" layoutX="253.0" layoutY="175.0" prefHeight="31.0" prefWidth="206.0" textFill="#949494">
+         <font>
+            <Font name="Calibri" size="27.0" />
+         </font>
+      </Label>
+      <MenuButton layoutX="634.0" layoutY="521.0" mnemonicParsing="false" text="Settings" textFill="#545454" AnchorPane.bottomAnchor="12.0" AnchorPane.rightAnchor="14.0">
+        <items>
+          <MenuItem mnemonicParsing="false" />
+          <MenuItem mnemonicParsing="false" />
+            <MenuItem mnemonicParsing="false" />
+        </items>
+         <font>
+            <Font name="Calibri" size="12.0" />
+         </font>
+      </MenuButton>
+      <Label alignment="CENTER" contentDisplay="CENTER" layoutX="315.0" layoutY="514.0" prefHeight="18.0" prefWidth="83.0" text="press Enter" textFill="#807f7f">
+         <font>
+            <Font name="Calibri" size="15.0" />
+         </font>
+      </Label>
+  </children>
+</AnchorPane>
