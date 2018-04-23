@@ -1,4 +1,7 @@
 package wrap.view;
+import javafx.animation.Animation;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -11,7 +14,7 @@ import wrap.DBController;
 import wrap.MainApp;
 import java.io.*;
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.ArrayList;
 
 public class LoginController {
 
@@ -33,6 +36,10 @@ public class LoginController {
     private MenuItem item2;
     @FXML
     private MenuItem item3;
+    @FXML
+    private Slider theme;
+    @FXML
+    private Label press;
 
     public LoginController() {
     }
@@ -41,17 +48,36 @@ public class LoginController {
 
     private void options() {
         try {
-            BufferedReader reader = new BufferedReader(new FileReader( "journals.txt"));
+            String line;
             ObservableList<String> options =
-                    FXCollections.observableArrayList(Arrays.asList(reader.readLine().split(" ")));
+                    FXCollections.observableArrayList();
+            BufferedReader reader = new BufferedReader(new FileReader( "journals.txt"));
+            while ((line = reader.readLine()) != null) {
+                options.add(line);
+            }
             dbUrl.setItems(options);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
+    static int status;
     @FXML
     private void initialize() {
+        press.opacityProperty();
+        theme.valueProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                if (newValue.intValue() == 1) {
+                    status = 1;
+                    mainApp.scene1.getStylesheets().add(LoginController.class.getResource("darculalike.css").toExternalForm());
+
+                }
+                if (newValue.intValue() == 0) {
+                    status = 0;
+                    mainApp.scene1.getStylesheets().clear();
+                }
+            }
+        });
         options();
         dbUrl.setPromptText("jdbc:mysql://");
         pane.setOnKeyPressed(new EventHandler<KeyEvent>() {
@@ -73,7 +99,9 @@ public class LoginController {
                        note(dbUrl.getValue());
                        connect.setText("You are connected");
                        mainApp.showWA();
-                       WAController waController = new WAController();
+                       if ( status == 1) {
+                           mainApp.scene2.getStylesheets().add(LoginController.class.getResource("darculalike.css").toExternalForm());
+                       }
                    }
                }
            }
@@ -82,9 +110,19 @@ public class LoginController {
 
     public void note(String option) {
         try {
+            BufferedReader reader = new BufferedReader(new FileReader("journals.txt"));
             FileWriter writer = new FileWriter("journals.txt", true);
-            writer.write(option + " ");
-            writer.close();
+            ArrayList<String> lines = new ArrayList<>();
+            while (reader.readLine() != null) {
+                lines.add(reader.readLine());
+            }
+            for (String s: lines) {
+                if (s == option) {
+                    writer.write(option + "\n");
+                    writer.close();
+                }
+            }
+            reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

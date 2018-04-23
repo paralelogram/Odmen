@@ -1,11 +1,6 @@
 package wrap;
 
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-
-import java.sql.Time;
-import java.util.Date;
 
 public class Chapter {
     public SimpleStringProperty id = new SimpleStringProperty();

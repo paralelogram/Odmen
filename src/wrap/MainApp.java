@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
@@ -17,6 +18,8 @@ public class MainApp extends Application {
     private Stage primaryStage;
     private AnchorPane login;
     private SplitPane workingPane;
+    public Scene scene2;
+    public Scene scene1;
 
     @Override
     public void start(Stage primaryStage) {
@@ -31,7 +34,7 @@ public class MainApp extends Application {
             FXMLLoader fxmlLoader = new FXMLLoader();
             fxmlLoader.setLocation(getClass().getResource("view/WorkingArea.fxml"));
             workingPane = (SplitPane) fxmlLoader.load();
-            Scene scene2 = new Scene(workingPane);
+            scene2 = new Scene(workingPane);
             primaryStage.setScene(scene2);
             WAController waController = fxmlLoader.getController();
             waController.setMainApp(this);
@@ -45,9 +48,9 @@ public class MainApp extends Application {
     public void showLogin() {
         try {
             FXMLLoader loginLoader = new FXMLLoader();
-            loginLoader.setLocation(MainApp.class.getResource("view/Login.fxml"));
+            loginLoader.setLocation(MainApp.class.getResource("view/login.fxml"));
             login = (AnchorPane) loginLoader.load();
-            Scene scene1 = new Scene(login);
+            scene1 = new Scene(login);
             primaryStage.setScene(scene1);
             LoginController controller = loginLoader.getController();
             controller.setMainApp(this);

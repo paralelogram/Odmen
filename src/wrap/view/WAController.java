@@ -1,21 +1,34 @@
 package wrap.view;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.Event;
+
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.AnchorPane;
+import javafx.stage.DirectoryChooser;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
 import wrap.Chapter;
 import wrap.DBController;
 import wrap.MainApp;
+
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 
 public class WAController {
 
-    private Tab tab1;
+    private AnchorPane layout;
     private TableView<Chapter> table;
     private TableColumn<Chapter, String> iDColumn;
     private TableColumn<Chapter, String> dateColumn;
@@ -26,46 +39,156 @@ public class WAController {
     @FXML
     private TextField searchField;
     @FXML
-    private ComboBox<String> comboBox;
+    private TextField refineField;
     @FXML
-    private TabPane tabPane;
+    private ComboBox<String> comboBox1;
+    @FXML
+    private ComboBox<String> comboBox2;
+    @FXML
+    private TabPane leftPane;
     @FXML
     private CheckBox isMeticulously;
+    @FXML
+    private TabPane rightPane;
+    @FXML
+    private SplitPane root;
 
-    //new tab
-    private Tab getTab(String s) {
-        tab1 = new Tab();
+    @FXML
+    private void initialize() {
+        ObservableList<String> options =
+                FXCollections.observableArrayList(
+                        "by_date_list.id",
+                        "by_date_list.brcst_date",
+                        "chapter_list.chapter_name",
+                        "chapter_list.duration",
+                        "by_date_list.admin"
+                );
+
+        comboBox1.setItems(options);
+        comboBox2.setItems(options);
+    }
+
+    private Tab getLayoutTab(String s) {
+        final Tab tab1 = new Tab();
         tab1.setText(s);
-        tabPane.getTabs().add(tab1);
+        leftPane.getTabs().add(tab1);
+        tab1.setClosable(true);
+        FXMLLoader fxmlLoader = new FXMLLoader();
+        fxmlLoader.setLocation(getClass().getResource("layout.fxml"));
+        try {
+            layout = (AnchorPane) fxmlLoader.load();
+            tab1.setContent(layout);
+            layout.autosize();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        final ContextMenu tabMenu = new ContextMenu();
+        MenuItem splitLeft = new MenuItem("Split left");
+        MenuItem splitRight = new MenuItem("Split right");
+        splitRight.setOnAction(event -> {
+                rightPane.getTabs().add(tab1);
+                leftPane.getTabs().remove(tab1);
+        });
+
+        splitLeft.setOnAction(event -> {
+                leftPane.getTabs().add(tab1);
+                rightPane.getTabs().remove(tab1);
+        });
+
+        layout.setOnContextMenuRequested(event -> {
+                tabMenu.show(layout, event.getScreenX(), event.getScreenY());
+        });
+
+        tabMenu.getItems().addAll(splitLeft, splitRight);
+        tab1.setContextMenu(tabMenu);
+        return tab1;
+    }
+
+    //new table tab
+    private Tab getTableTab(String s) {
+        final Tab tab1 = new Tab();
+        tab1.setText(s);
+        leftPane.getTabs().add(tab1);
         tab1.setClosable(true);
         table = new TableView<>();
         tab1.setContent(table);
+        final ContextMenu tabMenu = new ContextMenu();
+        MenuItem splitLeft = new MenuItem("Split left");
+        MenuItem splitRight = new MenuItem("Split right");
+        MenuItem report = new MenuItem("Report");
+        MenuItem delete = new MenuItem("Delete selected");
+        delete.setOnAction(event -> {
+            ObservableList<Chapter> rows = table.getItems();
+            for (Chapter row : rows) {
+                try {
+                    JDBSCon().statement.executeUpdate("DELETE  FROM broadcasting_list WHERE id = '" + row.getId() + "' AND ch_id = (SELECT ch_id FROM chapter_list AS ch_id WHERE chapter_name = '" + row.getChapterName() + "' AND duration = '" + row.getDuration() + "')");
+                    JDBSCon().statement.executeUpdate("DELETE  FROM chapter_list WHERE chapter_name = '" + row.getChapterName() + "' AND duration = '" + row.getDuration() + "'");
+                    JDBSCon().statement.executeUpdate("DELETE  FROM by_date_list WHERE id = " + row.getId());
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        report.setOnAction(event -> {
+            DirectoryChooser directoryChooser = new DirectoryChooser();
+
+            final File file = directoryChooser.showDialog(null);
+
+            Workbook book = new HSSFWorkbook();
+            SimpleDateFormat format = new SimpleDateFormat("dd.MM.YYYY");
+            Sheet sheet = book.createSheet("report" + format.format(new Date()));
+            ObservableList<Chapter> items = table.getItems();
+            sheet.setFitToPage(true);
+            for (int i = 0; i < items.size(); i++) {
+                Row row = sheet.createRow(i);
+                Cell id = row.createCell(0);
+                Cell date = row.createCell(1);
+                DataFormat DateFormat = book.createDataFormat();
+                CellStyle dateStyle = book.createCellStyle();
+                dateStyle.setDataFormat(DateFormat.getFormat("dd.mm.yyyy"));
+                date.setCellStyle(dateStyle);
+                Cell chapter = row.createCell(2);
+                Cell duration = row.createCell(3);
+                Cell admin = row.createCell(4);
+                id.setCellValue(items.get(i).getId());
+                date.setCellValue(items.get(i).getDate());
+                chapter.setCellValue(items.get(i).getChapterName());
+                duration.setCellValue(items.get(i).getDuration());
+                admin.setCellValue(items.get(i).getAdmin());
+                }
+                try {
+                book.write(new FileOutputStream(file.getAbsolutePath() + "/report" + format.format(new Date())));
+                } catch (IOException e) {
+                e.printStackTrace();
+                }
+        });
+        splitRight.setOnAction(event -> {
+                rightPane.getTabs().add(tab1);
+                leftPane.getTabs().remove(tab1);
+        });
+        splitLeft.setOnAction(event -> {
+                leftPane.getTabs().add(tab1);
+                rightPane.getTabs().remove(tab1);
+        });
+        table.setOnContextMenuRequested(event -> {
+                tabMenu.show(table, event.getScreenX(), event.getScreenY());
+        });
+        tabMenu.getItems().addAll(splitLeft, splitRight, report, delete);
+        tab1.setContextMenu(tabMenu);
         return tab1;
     }
 
     public WAController() {
     }
 
-
-
     @FXML
-    private void handleRemove() {
-        String s = "LIKE";
-        if(isMeticulously.isSelected()) {
-            s = "=";
-        }
-        System.out.println(s);
-        String searchQuery = "SELECT by_date_list.id, by_date_list.brcst_date, chapter_list.chapter_name, chapter_list.duration, by_date_list.admin FROM  broadcasting_list, by_date_list, chapter_list WHERE by_date_list.id = broadcasting_list.id AND chapter_list.ch_id = broadcasting_list.ch_id AND "+ comboBox.getValue() + "LIKE '" + handleIsMeticulously() + searchField.getText() + handleIsMeticulously() + "'";
-        getTab("removed");
-        ResultSet rS;
-        try {
-        rS = JDBSCon().statement.executeQuery("DELETE FROM broadcasting_list, by_date_list, chapter_list WHERE (" + searchQuery + ")");
-            fillTable(rS);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    private void handleAdd() {
+        getLayoutTab("Add new");
     }
-    //to daba
+
+
+    //to database
     private DBController JDBSCon() {
         DBController controller = new DBController();
         try {
@@ -85,19 +208,19 @@ public class WAController {
         durationColumn = new TableColumn<>("Duration");
         adminColumn = new TableColumn<>("Admin");
         iDColumn.setCellValueFactory(
-                new PropertyValueFactory<Chapter, String>("id")
+                new PropertyValueFactory<>("id")
         );
         dateColumn.setCellValueFactory(
-                new PropertyValueFactory<Chapter, String>("date")
+                new PropertyValueFactory<>("date")
         );
         chapterNameColumn.setCellValueFactory(
-                new PropertyValueFactory<Chapter, String>("chapterName")
+                new PropertyValueFactory<>("chapterName")
         );
         durationColumn.setCellValueFactory(
-                new PropertyValueFactory<Chapter, String>("duration")
+                new PropertyValueFactory<>("duration")
         );
         adminColumn.setCellValueFactory(
-                new PropertyValueFactory<Chapter, String>("admin")
+                new PropertyValueFactory<>("admin")
         );
         table.getColumns().add(iDColumn);
         table.getColumns().add(dateColumn);
@@ -124,29 +247,37 @@ public class WAController {
         else return "%";
     }
 
+    private String toRefine() {
+        if (refineField.getText().isEmpty()) {
+            return "";
+        }
+        else return "AND " + comboBox2.getValue() + " LIKE '" + handleIsMeticulously()
+                + refineField.getText() + handleIsMeticulously() + "'";
+    }
+
+    private String toSearch() {
+        if(searchField.getText().isEmpty()) {
+            return "";
+        }
+        else return " AND " + comboBox1.getValue() +
+        " LIKE '" + handleIsMeticulously() + searchField.getText() + handleIsMeticulously()
+                + "'";
+    }
+
     @FXML
     private void handleSearchBy() throws SQLException {
         //SQL SELECT
-        String searchQuery = "SELECT by_date_list.id, by_date_list.brcst_date, chapter_list.chapter_name, chapter_list.duration, by_date_list.admin FROM  broadcasting_list, by_date_list, chapter_list WHERE by_date_list.id = broadcasting_list.id AND chapter_list.ch_id = broadcasting_list.ch_id AND "+ comboBox.getValue() +
-                " LIKE '" + handleIsMeticulously() + searchField.getText() + handleIsMeticulously() + "'";
-        getTab("review");
+        String searchQuery = "SELECT by_date_list.id, by_date_list.brcst_date, chapter_list.chapter_name, chapter_list.duration," +
+                " by_date_list.admin FROM  broadcasting_list, by_date_list, chapter_list WHERE by_date_list.id = broadcasting_list.id AND chapter_list.ch_id = broadcasting_list.ch_id" +
+               toSearch() + toRefine();
+        getTableTab("review");
         ResultSet rS;
         rS = JDBSCon().statement.executeQuery(searchQuery);
         fillTable(rS);
     }
 
-    @FXML
-    private void initialize() {
-        ObservableList<String> options =
-                FXCollections.observableArrayList(
-                        "by_date_list.id",
-                        "by_date_list.brcst_date",
-                        "chapter_list.chapter_name",
-                        "chapter_list.duration",
-                        "by_date_list.admin"
-                );
-        comboBox.setItems(options);
-    }
+
+
 
     private MainApp mainApp;
 
